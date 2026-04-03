@@ -4,9 +4,11 @@
   "description": "Todo app with backend",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "npm install"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "sqlite3": "^5.1.6"
