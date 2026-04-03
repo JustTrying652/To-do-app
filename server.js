@@ -1,10 +1,11 @@
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 app.use(cors({
-    origin: "*"
+    origin: "https://peppy-crepe-5ac129.netlify.app"
 }));
 app.use(express.json());
 
@@ -58,12 +59,14 @@ app.post("/tasks", (req, res) => {
 
 // UPDATE task
 app.put("/tasks/:id", (req, res) => {
-    const { text, completed, priority, dueDate } = req.body;
+    const { text, completed, priority, dueDate, userId } = req.body;
 
     db.run(
-        "UPDATE tasks SET text=?, completed=?, priority=?, dueDate=? WHERE id=?",
-        [text, completed, priority, dueDate, req.params.id],
-        () => {
+        "UPDATE tasks SET text=?, completed=?, priority=?, dueDate=? WHERE id=? AND userId=?",
+        [text, completed, priority, dueDate, req.params.id, userId],
+        function (err) {
+            if (err) return res.status(500).json({ error: "Database error" });
+            if (this.changes === 0) return res.status(403).json({ error: "Not allowed" });
             res.sendStatus(200);
         }
     );
@@ -71,38 +74,54 @@ app.put("/tasks/:id", (req, res) => {
 
 // DELETE task
 app.delete("/tasks/:id", (req, res) => {
-    db.run("DELETE FROM tasks WHERE id=?", [req.params.id], () => {
-        res.sendStatus(200);
-    });
-});
+    const { userId } = req.body;
 
-app.post("/signup", (req, res) => {
-    const { username, password } = req.body;
-
-    db.run(
-        "INSERT INTO users (username, password) VALUES (?, ?)",
-        [username, password],
+    db.run("DELETE FROM tasks WHERE id=? AND userId=?", [req.params.id, userId],
         function (err) {
-            if (err) {
-                return res.status(400).json({ error: "User already exists" });
-            }
-            res.json({ message: "User created successfully" });
+            if (err) return res.status(500).json({ error: "Database error" });
+            if (this.changes === 0) return res.status(403).json({ error: "Not allowed" });
+            res.sendStatus(200);
         }
     );
 });
 
-app.post("/login", (req, res) => {
+app.post("/signup", async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        db.run(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            [username, hashedPassword],
+            function (err) {
+                if (err) {
+                    return res.status(400).json({ error: "User already exists" });
+                }
+                res.json({ message: "User created successfully" });
+            }
+        );
+    } catch (err) {
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+app.post("/login", async (req, res) => {
     const { username, password } = req.body;
 
     db.get(
-        "SELECT * FROM users WHERE username=? AND password=?",
-        [username, password],
-        (err, user) => {
+        "SELECT * FROM users WHERE username=?",
+        [username],
+        async (err, user) => {
             if (!user) {
                 return res.status(401).json({ error: "Invalid credentials" });
             }
 
-            res.json({ message: "Login successful", userId: user.id });
+            const match = await bcrypt.compare(password, user.password);
+            if (!match) {
+                return res.status(401).json({ error: "Invalid credentials" });
+            }
+
+            res.json({ message: "Login successful", userId: user.id, username: user.username });
         }
     );
 });

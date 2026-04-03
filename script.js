@@ -112,8 +112,11 @@ if (task.dueDate && task.dueDate < today && !task.completed) {
 }
 
 async function deleteTask(id) {
+    const userId = localStorage.getItem("userId");
     await fetch(`https://to-do-app-sqvu.onrender.com/tasks/${id}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId })
     });
 
     displayTasks();
@@ -131,7 +134,8 @@ async function toggleComplete(id) {
             text: task.text,
             completed: task.completed ? 0 : 1,
             priority: task.priority,
-            dueDate: task.dueDate
+            dueDate: task.dueDate,
+            userId: localStorage.getItem("userId")
         })
     });
 
@@ -202,7 +206,8 @@ async function saveEdit(id) {
             text: updatedText,
             completed: task.completed,
             priority: task.priority,
-            dueDate: task.dueDate
+            dueDate: task.dueDate,
+            userId: localStorage.getItem("userId")
         })
     });
 
