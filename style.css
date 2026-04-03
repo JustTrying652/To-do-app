@@ -186,3 +186,19 @@ body.dark button:hover {
 .task-text {
     cursor: pointer;
 }
+@media (max-width: 600px) {
+    .container {
+        width: 95%;
+        padding: 10px;
+    }
+
+    input, select, button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

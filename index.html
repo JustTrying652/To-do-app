@@ -7,7 +7,10 @@
     </head>
     <body>
         <div class="container">
-            <h1>To-Do App</h1><button onclick="toggleDarkMode()" class="dark-toggle">🌙 Dark Mode</button>
+            <h1>To-Do App</h1>
+            <p>Welcome, <span id="username"></span>!</p>
+            <button onclick="toggleDarkMode()" class="dark-toggle">🌙 Dark Mode</button>
+            <button onclick="logout()" class="logout-btn">Logout</button>
             <div class="input-section">
                 <input type="text" id="taskInput" placeholder="Enter a new task">
 
@@ -33,6 +36,7 @@
             <div class="search-section">
                  <input type="text" id="searchInput" placeholder="Search tasks..." onkeyup="displayTasks()">
              </div> 
+             <div id="loader" style="display:none;">Loading...</div>
              
             <ul id="taskList"></ul>
         </div>

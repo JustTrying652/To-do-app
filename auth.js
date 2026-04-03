@@ -15,6 +15,7 @@ async function login() {
 
     if (res.ok) {
         localStorage.setItem("userId", data.userId);
+        localStorage.setItem("username", data.username);
         window.location.href = "index.html";
     } else {
         alert(data.error);

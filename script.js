@@ -1,6 +1,9 @@
 
 const userId = localStorage.getItem("userId");
-
+const username = localStorage.getItem("username");
+if (username) {
+    document.getElementById("username").textContent = username;
+}
 if (!userId) {
     window.location.href = "auth.html";
 }
@@ -46,12 +49,14 @@ function saveTask(task) {
 }
 
 async function displayTasks() {
+    document.getElementById("loader").style.display = "block";
     const taskList = document.getElementById("taskList");
     taskList.innerHTML = "";
 
     const searchValue = document.getElementById("searchInput")?.value.toLowerCase() || "";
 
     let tasks = await getTasks();
+    document.getElementById("loader").style.display = "none";
     if (currentSort === "date") {
     tasks.sort((a, b) => {
         if (!a.dueDate) return 1;
@@ -147,7 +152,10 @@ function toggleDarkMode() {
         localStorage.setItem("theme", "light");
     }
 }
-
+function logout() {
+    localStorage.removeItem("userId");
+    window.location.href = "auth.html";
+}
 async function startEdit(id) {
     const tasks = await getTasks();
     const task = tasks.find(t => t.id === id);
