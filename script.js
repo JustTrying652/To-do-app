@@ -19,7 +19,7 @@ async function addTask() {
 
     if (!task.text) return;
     const userId = localStorage.getItem("userId");
-    await fetch("http://localhost:3000/tasks", {
+    await fetch("https://to-do-app-sqvu.onrender.com/tasks", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -107,7 +107,7 @@ if (task.dueDate && task.dueDate < today && !task.completed) {
 }
 
 async function deleteTask(id) {
-    await fetch(`http://localhost:3000/tasks/${id}`, {
+    await fetch(`https://to-do-app-sqvu.onrender.com/tasks/${id}`, {
         method: "DELETE"
     });
 
@@ -117,7 +117,7 @@ async function toggleComplete(id) {
     let tasks = await getTasks();
     const task = tasks.find(t => t.id === id);
 
-    await fetch(`http://localhost:3000/tasks/${id}`, {
+    await fetch(`https://to-do-app-sqvu.onrender.com/tasks/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
@@ -185,7 +185,7 @@ async function saveEdit(id) {
 
     if (!updatedText) return;
 
-      await fetch(`http://localhost:3000/tasks/${id}`, {
+      await fetch(`https://to-do-app-sqvu.onrender.com/tasks/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json"
@@ -203,7 +203,7 @@ async function saveEdit(id) {
 
 async function getTasks() {
     const userId = localStorage.getItem("userId");
-    const res = await fetch(`http://localhost:3000/tasks/${userId}`);
+    const res = await fetch(`https://to-do-app-sqvu.onrender.com/tasks/${userId}`);
     return await res.json();
 }
 
