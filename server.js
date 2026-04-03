@@ -116,8 +116,23 @@ app.post("/login", async (req, res) => {
                 return res.status(401).json({ error: "Invalid credentials" });
             }
 
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) {
+            let passwordValid = false;
+
+            // Check if password is bcrypt hashed (hashes start with $2)
+            if (user.password.startsWith("$2")) {
+                passwordValid = await bcrypt.compare(password, user.password);
+            } else {
+                // Legacy plain text password — compare directly
+                passwordValid = (password === user.password);
+
+                // Auto-upgrade: re-hash and save for next time
+                if (passwordValid) {
+                    const newHash = await bcrypt.hash(password, 10);
+                    db.run("UPDATE users SET password=? WHERE id=?", [newHash, user.id]);
+                }
+            }
+
+            if (!passwordValid) {
                 return res.status(401).json({ error: "Invalid credentials" });
             }
 

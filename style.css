@@ -187,18 +187,80 @@ body.dark button:hover {
     cursor: pointer;
 }
 @media (max-width: 600px) {
-    .container {
-        width: 95%;
-        padding: 10px;
+    body {
+        align-items: flex-start;
+        height: auto;
+        min-height: 100vh;
+        padding: 16px 0;
     }
 
-    input, select, button {
+    .container {
+        width: 95%;
+        padding: 16px 12px;
+        border-radius: 8px;
+        margin: 0 auto;
+    }
+
+    h1 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+    }
+
+    .dark-toggle, .logout-btn {
+        width: 48%;
+        margin: 4px 1%;
+        font-size: 13px;
+    }
+
+    .input-section {
+        flex-direction: column;
+    }
+
+    .input-section input,
+    .input-section select,
+    .input-section button {
         width: 100%;
-        margin-bottom: 10px;
+        box-sizing: border-box;
+        margin-bottom: 8px;
+    }
+
+    .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: center;
+    }
+
+    .filters button {
+        flex: 1 1 40%;
+        font-size: 12px;
+        padding: 8px 4px;
+    }
+
+    .sorting {
+        display: flex;
+        gap: 6px;
+        margin: 8px 0;
+    }
+
+    .sorting button {
+        flex: 1;
+        font-size: 12px;
+    }
+
+    .search-section input {
+        width: 100%;
+        box-sizing: border-box;
     }
 
     li {
         flex-direction: column;
         align-items: flex-start;
+        gap: 6px;
+    }
+
+    li button {
+        width: 100%;
+        margin-top: 4px;
     }
 }
