@@ -2,7 +2,7 @@
 const userId = localStorage.getItem("userId");
 const username = localStorage.getItem("username");
 if (username) {
-    document.getElementById("welcomeUser").innerText = "Welcome, " + username;
+    document.getElementById("username").innerText = "Welcome, " + username;
 }
 if (!userId) {
     window.location.href = "auth.html";
