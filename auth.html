@@ -3,21 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Signup</title>
+    <title>To-Do App — Login</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Welcome back</h2>
+        <p>Sign in to access your tasks</p>
 
-<div class="container">
-    <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username" onkeydown="if(event.key==='Enter') login()">
+        <input type="password" id="password" placeholder="Password" onkeydown="if(event.key==='Enter') login()">
 
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
+        <div class="auth-btns">
+            <button class="btn-primary" onclick="login()">Sign in</button>
+            <button class="btn-secondary" onclick="signup()">Create account</button>
+        </div>
 
-    <button onclick="login()">Login</button>
-    <button onclick="signup()">Sign Up</button>
+        <div class="auth-toggle">
+            Don't have an account? <span onclick="signup()">Sign up</span>
+        </div>
+    </div>
 </div>
-
 <script src="auth.js"></script>
 </body>
 </html>
