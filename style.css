@@ -493,6 +493,13 @@ input[type="checkbox"]:checked::after {
 
 .btn-primary { width: 100%; text-align: center; padding: 11px; }
 
+.btn-add {
+    width: auto !important;
+    padding: 10px 18px !important;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
 .auth-toggle {
     text-align: center;
     margin-top: 16px;

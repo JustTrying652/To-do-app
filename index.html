@@ -27,13 +27,13 @@
             <input type="text" id="taskInput" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter') addTask()">
         </div>
         <div class="input-row">
-            <input type="date" id="dueDate" style="flex:1">
-            <select id="priority" style="flex:1">
-                <option value="Low">🟢 Low</option>
-                <option value="Medium" selected>🟡 Medium</option>
-                <option value="High">🔴 High</option>
+            <input type="date" id="dueDate" style="flex:1.2; min-width:0;">
+            <select id="priority" style="flex:1.2; min-width:0;">
+                <option value="Low">🟢 Low Priority</option>
+                <option value="Medium" selected>🟡 Medium Priority</option>
+                <option value="High">🔴 High Priority</option>
             </select>
-            <button class="btn-primary" onclick="addTask()">+ Add</button>
+            <button class="btn-primary btn-add" onclick="addTask()">+</button>
         </div>
     </div>
 
