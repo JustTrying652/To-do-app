@@ -249,4 +249,133 @@ async function getTasks() {
     return await res.json();
 }
 
+// ── AI Panel helpers ──
+function showAiPanel(title, html) {
+    const panel = document.getElementById("ai-panel");
+    panel.style.display = "block";
+    panel.innerHTML = `
+        <div class="ai-title">${title}</div>
+        <div class="ai-content">${html}</div>
+        <button class="ai-close" onclick="document.getElementById('ai-panel').style.display='none'">✕ Close</button>
+    `;
+    panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function setAiBtnsLoading(loading) {
+    document.querySelectorAll(".btn-ai").forEach(b => b.disabled = loading);
+}
+
+// ── AI: Suggest Priority ──
+async function aiSuggestPriority() {
+    const text = document.getElementById("taskInput").value.trim();
+    if (!text) {
+        document.getElementById("taskInput").classList.add("shake");
+        setTimeout(() => document.getElementById("taskInput").classList.remove("shake"), 400);
+        return;
+    }
+
+    setAiBtnsLoading(true);
+    showAiPanel("✨ Analysing priority...", "<em>Thinking...</em>");
+
+    try {
+        const res = await fetch(`${API}/ai/priority`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task: text })
+        });
+        const data = await res.json();
+
+        // Auto-set the dropdown
+        document.getElementById("priority").value = data.priority;
+
+        showAiPanel("✨ Priority suggestion", `
+            <strong>${data.priority} Priority</strong> recommended<br>
+            <span style="color:var(--text2); font-size:0.82rem;">${data.reason}</span>
+            <br><span style="font-size:0.78rem; color:var(--text3); margin-top:6px; display:block;">Priority dropdown has been updated automatically.</span>
+        `);
+    } catch (e) {
+        showAiPanel("✨ Priority suggestion", "Could not get suggestion. Please try again.");
+    }
+    setAiBtnsLoading(false);
+}
+
+// ── AI: Break into Subtasks ──
+async function aiBreakdown() {
+    const text = document.getElementById("taskInput").value.trim();
+    if (!text) {
+        document.getElementById("taskInput").classList.add("shake");
+        setTimeout(() => document.getElementById("taskInput").classList.remove("shake"), 400);
+        return;
+    }
+
+    setAiBtnsLoading(true);
+    showAiPanel("🔀 Breaking down task...", "<em>Thinking...</em>");
+
+    try {
+        const res = await fetch(`${API}/ai/breakdown`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task: text })
+        });
+        const data = await res.json();
+
+        const priority = document.getElementById("priority").value;
+        const dueDate = document.getElementById("dueDate").value;
+
+        const subtaskHtml = data.subtasks.map(s => `
+            <div class="ai-subtask">
+                <span>${escapeHtml(s)}</span>
+                <button class="btn-add-subtask" onclick="addSubtask('${escapeHtml(s)}', '${priority}', '${dueDate}', this)">+ Add</button>
+            </div>
+        `).join("");
+
+        showAiPanel("🔀 Suggested subtasks", subtaskHtml);
+    } catch (e) {
+        showAiPanel("🔀 Subtask breakdown", "Could not break down task. Please try again.");
+    }
+    setAiBtnsLoading(false);
+}
+
+async function addSubtask(text, priority, dueDate, btn) {
+    btn.disabled = true;
+    btn.textContent = "✓ Added";
+    try {
+        await fetch(`${API}/tasks`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text, priority, dueDate, userId })
+        });
+        displayTasks();
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = "+ Add";
+    }
+}
+
+// ── AI: Daily Summary ──
+async function aiDailySummary() {
+    setAiBtnsLoading(true);
+    showAiPanel("📋 Generating your daily plan...", "<em>Thinking...</em>");
+
+    try {
+        const tasks = await getTasks();
+        if (tasks.filter(t => !t.completed).length === 0) {
+            showAiPanel("📋 Daily summary", "🎉 You have no pending tasks! Enjoy your day.");
+            setAiBtnsLoading(false);
+            return;
+        }
+
+        const res = await fetch(`${API}/ai/summary`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ tasks })
+        });
+        const data = await res.json();
+        showAiPanel("📋 Your daily plan", data.summary);
+    } catch (e) {
+        showAiPanel("📋 Daily summary", "Could not generate summary. Please try again.");
+    }
+    setAiBtnsLoading(false);
+}
+
 window.onload = displayTasks;

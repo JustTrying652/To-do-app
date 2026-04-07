@@ -35,7 +35,15 @@
             </select>
             <button class="btn-primary btn-add" onclick="addTask()">+</button>
         </div>
+        <div class="ai-row">
+            <button class="btn-ai" onclick="aiSuggestPriority()">✨ Suggest Priority</button>
+            <button class="btn-ai" onclick="aiBreakdown()">🔀 Break into Subtasks</button>
+            <button class="btn-ai" onclick="aiDailySummary()">📋 Daily Summary</button>
+        </div>
     </div>
+
+    <!-- AI Result Panel -->
+    <div id="ai-panel" style="display:none;"></div>
 
     <!-- Toolbar -->
     <div class="toolbar">
