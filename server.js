@@ -154,6 +154,16 @@ app.post("/login", async (req, res) => {
     }
 });
 
+// Helper: strip markdown code fences and extract JSON
+function extractJSON(raw) {
+    // Remove ```json ... ``` or ``` ... ``` wrappers
+    const cleaned = raw.replace(/```(?:json)?\s*/gi, "").replace(/```/g, "").trim();
+    // Find the first [ or { and parse from there
+    const start = cleaned.search(/[\[{]/);
+    if (start === -1) throw new Error("No JSON found in response");
+    return JSON.parse(cleaned.slice(start));
+}
+
 // ── AI: Break task into subtasks ──
 app.post("/ai/breakdown", async (req, res) => {
     const { task } = req.body;
@@ -162,18 +172,26 @@ app.post("/ai/breakdown", async (req, res) => {
     try {
         const completion = await groq.chat.completions.create({
             model: "llama3-8b-8192",
-            messages: [{
-                role: "user",
-                content: `Break this task into 3-5 clear, actionable subtasks. Return ONLY a JSON array of strings, no explanation, no markdown. Task: "${task}"`
-            }],
-            max_tokens: 300
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a productivity assistant. You only respond with raw JSON, no markdown, no explanation, no code blocks."
+                },
+                {
+                    role: "user",
+                    content: `Break this task into 3-5 clear actionable subtasks. Respond with ONLY a JSON array of strings. Example: ["Step one", "Step two", "Step three"]. Task: "${task}"`
+                }
+            ],
+            max_tokens: 300,
+            temperature: 0.4
         });
 
         const raw = completion.choices[0].message.content.trim();
-        const subtasks = JSON.parse(raw);
+        const subtasks = extractJSON(raw);
+        if (!Array.isArray(subtasks)) throw new Error("Expected array");
         res.json({ subtasks });
     } catch (err) {
-        console.error(err);
+        console.error("Breakdown error:", err.message);
         res.status(500).json({ error: "AI request failed" });
     }
 });
@@ -186,18 +204,28 @@ app.post("/ai/priority", async (req, res) => {
     try {
         const completion = await groq.chat.completions.create({
             model: "llama3-8b-8192",
-            messages: [{
-                role: "user",
-                content: `Based on this task, suggest a priority level. Return ONLY a JSON object like {"priority": "High", "reason": "short reason"}. Priority must be exactly one of: High, Medium, Low. Task: "${task}"`
-            }],
-            max_tokens: 100
+            messages: [
+                {
+                    role: "system",
+                    content: "You are a productivity assistant. You only respond with raw JSON, no markdown, no explanation, no code blocks."
+                },
+                {
+                    role: "user",
+                    content: `Suggest a priority level for this task. Respond with ONLY a JSON object. Example: {"priority":"High","reason":"This is time-sensitive"}. Priority must be exactly one of: High, Medium, Low. Task: "${task}"`
+                }
+            ],
+            max_tokens: 120,
+            temperature: 0.3
         });
 
         const raw = completion.choices[0].message.content.trim();
-        const result = JSON.parse(raw);
+        const result = extractJSON(raw);
+        if (!result.priority || !result.reason) throw new Error("Missing fields");
+        // Normalise priority capitalisation
+        result.priority = result.priority.charAt(0).toUpperCase() + result.priority.slice(1).toLowerCase();
         res.json(result);
     } catch (err) {
-        console.error(err);
+        console.error("Priority error:", err.message);
         res.status(500).json({ error: "AI request failed" });
     }
 });
@@ -207,24 +235,33 @@ app.post("/ai/summary", async (req, res) => {
     const { tasks } = req.body;
     if (!tasks || tasks.length === 0) return res.status(400).json({ error: "No tasks provided" });
 
-    const taskList = tasks
-        .filter(t => !t.completed)
+    const pending = tasks.filter(t => !t.completed);
+    if (pending.length === 0) return res.json({ summary: "🎉 You have no pending tasks! Great work — enjoy your day." });
+
+    const taskList = pending
         .map(t => `- ${t.text} (${t.priority} priority${t.dueDate ? ", due " + t.dueDate : ""})`)
         .join("\n");
 
     try {
         const completion = await groq.chat.completions.create({
             model: "llama3-8b-8192",
-            messages: [{
-                role: "user",
-                content: `You are a helpful productivity assistant. Given these pending tasks, write a short motivational daily plan in 3-4 sentences. Be encouraging and practical.\n\nTasks:\n${taskList}`
-            }],
-            max_tokens: 200
+            messages: [
+                {
+                    role: "system",
+                    content: "You are an encouraging productivity coach. Write concise, motivating daily plans."
+                },
+                {
+                    role: "user",
+                    content: `Based on these pending tasks, write a short motivating daily plan in 3-4 sentences. Be practical and positive.\n\nTasks:\n${taskList}`
+                }
+            ],
+            max_tokens: 200,
+            temperature: 0.7
         });
 
         res.json({ summary: completion.choices[0].message.content.trim() });
     } catch (err) {
-        console.error(err);
+        console.error("Summary error:", err.message);
         res.status(500).json({ error: "AI request failed" });
     }
 });
