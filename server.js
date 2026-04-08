@@ -16,8 +16,17 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// Groq client
+// Groq client - handle both default and named export
+const GroqSDK = require("groq-sdk");
+const Groq = GroqSDK.default || GroqSDK;
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+// Verify Groq key on startup
+if (!process.env.GROQ_API_KEY) {
+    console.warn("⚠️  GROQ_API_KEY not set - AI features will not work");
+} else {
+    console.log("✅ GROQ_API_KEY loaded, length:", process.env.GROQ_API_KEY.length);
+}
 
 // Create tables if they don't exist
 async function initDB() {
@@ -151,6 +160,23 @@ app.post("/login", async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Server error" });
+    }
+});
+
+// ── AI test endpoint ──
+app.get("/ai/test", async (req, res) => {
+    if (!process.env.GROQ_API_KEY) {
+        return res.status(500).json({ error: "GROQ_API_KEY not set" });
+    }
+    try {
+        const completion = await groq.chat.completions.create({
+            model: "llama3-8b-8192",
+            messages: [{ role: "user", content: "Reply with only the word: working" }],
+            max_tokens: 10
+        });
+        res.json({ status: "ok", response: completion.choices[0].message.content.trim() });
+    } catch (err) {
+        res.status(500).json({ error: err.message, type: err.constructor.name });
     }
 });
 
