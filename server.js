@@ -2,11 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const { Pool } = require("pg");
-const Groq = require("groq-sdk");
+const GroqSDK = require("groq-sdk");
+const GroqClient = GroqSDK.default || GroqSDK;
 
 const app = express();
 app.use(cors({
-    origin: "https://peppy-crepe-5ac129.netlify.app"
+    origin: "https://to-do-app-obkk.vercel.app"
 }));
 app.use(express.json());
 
@@ -16,10 +17,8 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// Groq client - handle both default and named export
-const GroqSDK = require("groq-sdk");
-const Groq = GroqSDK.default || GroqSDK;
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// Groq client
+const groq = new GroqClient({ apiKey: process.env.GROQ_API_KEY });
 
 // Verify Groq key on startup
 if (!process.env.GROQ_API_KEY) {
