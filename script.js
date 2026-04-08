@@ -265,6 +265,48 @@ function setAiBtnsLoading(loading) {
     document.querySelectorAll(".btn-ai").forEach(b => b.disabled = loading);
 }
 
+// ── AI: Extract due date from natural language ──
+async function aiExtractDate() {
+    const input = document.getElementById("taskInput");
+    const text = input.value.trim();
+
+    if (!text) {
+        input.classList.add("shake");
+        input.focus();
+        setTimeout(() => input.classList.remove("shake"), 400);
+        return;
+    }
+
+    setAiBtnsLoading(true);
+    showAiPanel("📅 Detecting due date...", "<em>Analysing your task...</em>");
+
+    try {
+        const res = await fetch(`${API}/ai/duedate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task: text })
+        });
+        const data = await res.json();
+
+        if (data.found && data.date) {
+            // Auto-set the date picker
+            document.getElementById("dueDate").value = data.date;
+            showAiPanel("📅 Due date detected", `
+                Found <strong>${data.label}</strong> in your task — due date set to <strong>${data.date}</strong>.
+                <br><span style="font-size:0.78rem; color:var(--text3); margin-top:6px; display:block;">Date picker has been updated automatically.</span>
+            `);
+        } else {
+            showAiPanel("📅 No date found", `
+                No due date was detected in your task text.<br>
+                <span style="color:var(--text2); font-size:0.82rem;">Try adding phrases like "by Friday", "tomorrow", "next week", or "in 3 days".</span>
+            `);
+        }
+    } catch (e) {
+        showAiPanel("📅 Due date detection", "Could not analyse task. Please try again.");
+    }
+    setAiBtnsLoading(false);
+}
+
 // ── AI: Suggest Priority ──
 async function aiSuggestPriority() {
     const text = document.getElementById("taskInput").value.trim();

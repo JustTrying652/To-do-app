@@ -385,6 +385,41 @@ app.post("/ai/summary", async (req, res) => {
     }
 });
 
+// ── AI: Extract due date from natural language ──
+app.post("/ai/duedate", async (req, res) => {
+    const { task } = req.body;
+    if (!task) return res.status(400).json({ error: "Task text required" });
+
+    const today = new Date().toISOString().split("T")[0];
+
+    try {
+        const completion = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                {
+                    role: "system",
+                    content: `You are a date extraction assistant. Today's date is ${today}. Extract a due date from the task text if one is mentioned (e.g. "tomorrow", "next Friday", "in 3 days", "by Monday", "end of week"). Respond with ONLY a JSON object. Example: {"date":"2025-04-10","found":true,"label":"next Friday"}. If no date is mentioned respond with {"date":null,"found":false,"label":null}. Date must be in YYYY-MM-DD format.`
+                },
+                {
+                    role: "user",
+                    content: `Task: "${task}"`
+                }
+            ],
+            max_tokens: 80,
+            temperature: 0.1
+        });
+
+        const raw = completion.choices[0].message.content.trim();
+        const result = extractJSON(raw);
+
+        if (!result) return res.json({ date: null, found: false, label: null });
+        res.json(result);
+    } catch (err) {
+        console.error("Due date error:", err.message);
+        res.json({ date: null, found: false, label: null });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
