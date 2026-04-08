@@ -169,7 +169,7 @@ app.get("/ai/test", async (req, res) => {
     }
     try {
         const completion = await groq.chat.completions.create({
-            model: "llama3-8b-8192",
+            model: "llama-3.3-70b-versatile",
             messages: [{ role: "user", content: "Reply with only the word: working" }],
             max_tokens: 10
         });
@@ -238,7 +238,7 @@ app.post("/ai/priority", async (req, res) => {
 
     try {
         const completion = await groq.chat.completions.create({
-            model: "llama3-8b-8192", // You can also try "mixtral-8x7b-32768" for better JSON
+            model: "llama-3.3-70b-versatile", // You can also try "mixtral-8x7b-32768" for better JSON
             messages: [
                 {
                     role: "system",
@@ -300,7 +300,7 @@ app.post("/ai/breakdown", async (req, res) => {
 
     try {
         const completion = await groq.chat.completions.create({
-            model: "llama3-8b-8192",
+            model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "system",
@@ -358,7 +358,7 @@ app.post("/ai/summary", async (req, res) => {
 
     try {
         const completion = await groq.chat.completions.create({
-            model: "llama3-8b-8192",
+            model: "llama-3.3-70b-versatile",
             messages: [
                 {
                     role: "system",
